@@ -67,7 +67,7 @@ class VowelPairRow:
     filename: str
 
     def pvi(self):
-        return 100 * ((self.first.duration - self.second.duration)/( 0.5*(self.first.duration + self.second.duration)))
+        return abs(100 * ((self.first.duration - self.second.duration)/( 0.5*(self.first.duration + self.second.duration))))
         
 def get_words(filename: str, word_intervals, phoneme_intervals) -> List[Word]:
     result = []
@@ -120,11 +120,12 @@ def write_vowel_pairs(vowel_pairs: List[VowelPairRow], pair_filename): #is this 
     with open(pair_filename, "w") as f:
         csv_writer = csv.writer(f) 
         #Participant ID, Utterance ID  ,Vowel 1 ,Vowel 1 Duration, Vowel 2, Vowel 2 Duration, PVI ,Average PVI
-        csv_writer.writerow(["Filename", "Vowel 1", "Vowel 1 min", "Vowel 1 max", "Vowel 1 Duration", 
+        csv_writer.writerow(["Filename", "Word", "Vowel 1", "Vowel 1 min", "Vowel 1 max", "Vowel 1 Duration", 
                              "Vowel 2", "Vowel 2 min", "Vowel 2 max", "Vowel 2 Duration", "PVI"])
         for vowel_pair in vowel_pairs: 
             csv_writer.writerow([
                 vowel_pair.filename,
+                vowel_pair.word,
                 vowel_pair.first.phoneme, 
                 vowel_pair.first.min, 
                 vowel_pair.first.max,
