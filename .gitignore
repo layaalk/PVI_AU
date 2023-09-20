@@ -1,7 +1,11 @@
 out
-**/*.TextGrid
-**/*.txt
-**/*.json
+out/**/*.TextGrid
+out/**/*.txt
+out/**/*.json
+PVI_data
+PVI_data/**/*.TextGrid
+PVI_data/**/*.txt
+PVI_data/**/*.json
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
