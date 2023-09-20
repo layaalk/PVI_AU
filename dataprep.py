@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import re
-import shutil
+import subprocess
 from functools import cache
 from itertools import chain
 from typing import Iterator, Tuple, Set
@@ -21,10 +21,11 @@ def get_args():
     parser.add_argument("out_dir", help="Where to put the prepared data")
     parser.add_argument("--tier", help="TextGrid tier that has the words", default="production")
     parser.add_argument("--arpabet", help="Whether to use ARPAbet instead of IPA", action="store_true")
+    parser.add_argument("--plain-text", help="Writes files as plain text rather than TextGrid", action="store_true")
     return parser.parse_args()
 
 
-def main(base_dir, out_dir, *, tier: str, arpabet: bool = False):
+def main(base_dir, out_dir, *, tier: str, arpabet: bool, plain_text: bool):
     logging.basicConfig(level=logging.INFO)
 
     dictionary = {}
@@ -53,28 +54,50 @@ def main(base_dir, out_dir, *, tier: str, arpabet: bool = False):
         rel_dir = os.path.dirname(os.path.relpath(path, base_dir))
         sample_out_dir = os.path.join(out_dir, rel_dir)
 
-        problem_phones = set(phones).difference(_ARPABET_TO_IPA if arpabet else _MFA_IPA)
-        assert not len(problem_phones), f"These phones are going to cause problems: {problem_phones}"
-
-        out_file = os.path.join(sample_out_dir, f"{id}.txt")
+        extension = "txt" if plain_text else "TextGrid"
+        out_file = os.path.join(sample_out_dir, f"{id}.{extension}")
         os.makedirs(os.path.dirname(out_file), exist_ok=True)
+
+        tg.tiers.remove(tg.getFirst("vowels"))
+        tg.getFirst("production").name = id.replace("chain", "")
         with open(out_file, "w") as f:
-            out_transcript = " ".join(ipa_words)
-            print(out_transcript, file=f)
+            if plain_text:
+                out_transcript = " ".join(ipa_words)
+                print(out_transcript, file=f)
+            else:
+                tg.write(f)
             n_written += 1
 
         wav_file = os.path.join(os.path.dirname(path), f"{id}.wav")
         if os.path.isfile(wav_file):
-            shutil.copy2(wav_file, os.path.join(sample_out_dir))
+            out_wav_file = os.path.join(sample_out_dir, os.path.basename(wav_file))
+            # shutil.copy2(wav_file, out_wav_file.replace(".wav", ".compare.wav"))
+            subprocess.run([
+                "ffmpeg",
+                "-y",
+                "-loglevel", "warning",
+                "-stats",
+                "-i", wav_file,
+                "-filter_complex",
+                "highpass=f=100,loudnorm=I=-23:LRA=7:tp=-2:print_format=json,alimiter=limit=-6dB",
+                "-ac", "1",
+                "-ar", "16000",
+                out_wav_file
+            ], check=True)
         else:
             logging.warning(f"Could not find file: {wav_file} !")
+
+    if not arpabet:
+        problem_phones = set(phones).difference(_ARPABET_TO_IPA if arpabet else _MFA_IPA)
+        assert not len(problem_phones), f"These phones are going to cause problems: {problem_phones}"
 
     if n_written == 0:
         raise AssertionError(f"No textgrid files found in {os.path.abspath(base_dir)} !")
 
     logging.info(f"Prepared {n_written} samples in {out_dir}")
 
-    write_vowel_list(phones, os.path.join(out_dir, "vowels.json"))
+    if not arpabet:
+        write_vowel_list(phones, os.path.join(out_dir, "vowels.json"))
 
     dict_path = os.path.join(out_dir, "dictionary.txt")
     with open(dict_path, "w") as dictionary_out:
@@ -191,7 +214,7 @@ _ARPABET_TO_IPA = {
     "DX": ("ɾ",),
     "EH": ("ɛ",),
     "ER": ("ɝ", "ɜ˞", "ə˞", "ɚ",),
-    "EY": ("e", "eɪ", "e͡ɪ",),
+    "EY": ("eɪ", "e͡ɪ", "e"),
     "F": ("f",),
     "G": ("ɡ", "g",),
     "HH": ("h",),
@@ -203,7 +226,7 @@ _ARPABET_TO_IPA = {
     "M": ("m",),
     "N": ("n",),
     "NG": ("ŋ",),
-    "OW": ("o", "oʊ", "o͡ʊ",),
+    "OW": ("oʊ", "o͡ʊ", "o",),
     "OY": ("ɔɪ", "ɔ͡ɪ",),
     "P": ("p",),
     "Q": ("ʔ",),
@@ -298,7 +321,9 @@ _MFA_PARTICULARS = {
     "ʌ": ["ɐ"],
     "aʊ": ["aw"],
     "aɪ": ["aj"],
+    "o": ["ow"],
     "oʊ": ["ow"],
+    "e": ["ej"],
     "eɪ": ["ej"],
     "ɔɪ": ["ɔj"],
 }
@@ -322,12 +347,12 @@ _HANDLE_SITUATIONS = {
     "ɜ˞": ["ɝ"],
     "ə˞": ["ɝ"],
     "ɚ": ["ɝ"],
-    "eɪ": ["e"],  # Merging this diphthong, preferring shortest symbol
-    "e͡ɪ": ["e"],
+    "e": ["eɪ"],
+    "e͡ɪ": ["eɪ"],
     "g": ["ɡ"],
     "dʒ": ["ʤ"],
     "d͡ʒ": ["ʤ"],
-    "oʊ": ["o"],  # Merging this diphthong, preferring shortest symbol
+    # "o": ["oʊ"],
     "o͡ʊ": ["o"],
     "ɔ͡ɪ": ["ɔɪ"],
     "r": ["ɹ"],
