@@ -84,7 +84,7 @@ mfa align \
     out/prepared/arpabet_by_session/dictionary.txt \
     english_us_arpa \
     out/aligned/arpabet_by_session \
-    --seed=8675309 --beam=1000 --retry_beam=4000
+    --seed=8675309 --config_path=mfa_config.yaml --clean
     
 # ARPAbet transcripts, "by word":
 mkdir -p out/aligned/arpabet_by_word && cp -R out/prepared/arpabet_by_word/* out/aligned/arpabet_by_word
@@ -93,7 +93,7 @@ mfa align \
     out/prepared/arpabet_by_word/dictionary.txt \
     english_us_arpa \
     out/aligned/arpabet_by_word \
-    --seed=8675309 --beam=1000 --retry_beam=4000
+    --seed=8675309 --config_path=mfa_config.yaml --clean
 
 
 ########################
@@ -105,30 +105,16 @@ mkdir -p out/aligned/ipa_by_session && cp -R out/prepared/ipa_by_session/* out/a
 mfa align \
     out/prepared/ipa_by_session \
     out/prepared/ipa_by_session/dictionary.txt \
-    english_us_arpa \
+    english_mfa \
     out/aligned/ipa_by_session \
-    --seed=8675309 --beam=1000 --retry_beam=4000
+    --seed=8675309 --config_path=mfa_config.yaml --clean
     
 # ARPAbet transcripts, "by word":
 mkdir -p out/aligned/ipa_by_word && cp -R out/prepared/ipa_by_word/* out/aligned/ipa_by_word
 mfa align \
     out/prepared/ipa_by_word \
     out/prepared/ipa_by_word/dictionary.txt \
-    english_us_arpa \
+    english_mfa \
     out/aligned/ipa_by_word \
-    --seed=8675309 --beam=1000 --retry_beam=4000
-
-```
-
-MFA can be a little bit fussy about re-running the alignments. A number of confusing problems can be
-avoided by starting with a fresh working directory. There's a `--clean` option in MFA which is supposed to take care of
-that, but there seem to be some quirks when using this flag in combination with other options like `--beam`. As such, 
-the workspace can be manually cleaned like so:
-
-```bash
-# Be extremely careful with these ones!
-rm -rf ~/Documents/MFA/arpabet_by_session
-rm -rf ~/Documents/MFA/arpabet_by_word
-rm -rf ~/Documents/MFA/ipa_by_session
-rm -rf ~/Documents/MFA/ipa_by_word
+    --seed=8675309 --config_path=mfa_config.yaml --clean
 ```
