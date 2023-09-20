@@ -40,7 +40,7 @@ it copies/preprocesses on the corresponding audio files, and it also builds a sp
 Basic usage is `python dataprep.py [options] [in_dir] [out_dir]`, with the options we explored spelled out below.
 
 Audio pre-processing uses ffmpeg. We roll off the bottom end of the spectrum using a 100Hz, 12dB/8ve high-pass filter.
-We applied adaptive loudness normalization using the EBU R128 broacast standard, followed by a brick-wall limiter 
+We applied adaptive loudness normalization using the EBU R128 broacast standard, followed by a -6dB brick-wall limiter 
 to remove especially large peaks.
 
 In MFA, aligning "by session" is accomplished by preparing each transcript as a `.txt` file per audio recording.
