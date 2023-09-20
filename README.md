@@ -39,7 +39,9 @@ The script `dataprep.py` does three things: it converts the manually-created `.T
 it copies/preprocesses on the corresponding audio files, and it also builds a specialized `dictionary.txt`. 
 Basic usage is `python dataprep.py [options] [in_dir] [out_dir]`, with the options we explored spelled out below.
 
-Audio pre-processing uses ffmpeg
+Audio pre-processing uses ffmpeg. We roll off the bottom end of the spectrum using a 100Hz, 12dB/8ve high-pass filter.
+We applied adaptive loudness normalization using the EBU R128 broacast standard, followed by a brick-wall limiter 
+to remove especially large peaks.
 
 In MFA, aligning "by session" is accomplished by preparing each transcript as a `.txt` file per audio recording.
 Aligning "by word" allows MFA to take advantage of manually-annotated time alignments for each word within an audio 
