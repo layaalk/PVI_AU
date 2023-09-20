@@ -79,7 +79,7 @@ def main(base_dir, out_dir, *, tier: str, arpabet: bool, plain_text: bool):
                 "-stats",
                 "-i", wav_file,
                 "-filter_complex",
-                "highpass=f=100,loudnorm=I=-23:LRA=7:tp=-2:print_format=json,alimiter=limit=-6dB",
+                "volume=1.0,highpass=f=100,loudnorm=I=-23:LRA=7:tp=-2:print_format=json,alimiter=limit=-6dB",
                 "-ac", "1",
                 "-ar", "16000",
                 out_wav_file
