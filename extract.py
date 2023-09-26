@@ -4,7 +4,7 @@ import json
 
 
 def main(
-        search_dir="/Users/layaalkhellah/PycharmProjects/AphasiaLab/",
+        search_dir="~/out/aligned/arpabet_by_session",
         out_filename="mfa_output_combined.json"
 ):
     # initialize an empty dictionary, where we'll store our results
@@ -43,24 +43,19 @@ def main(
                         filtered_intervals[key]["phonemes"].append({
                             "min_time": interval.minTime,
                             "max_time": interval.maxTime,
-                            "phoneme": interval.mark.strip()
+                            "phoneme": interval.mark.strip(),
+                            "phoneme": to_ipa("phoneme")
                         })
 
     # This writes a (pretty human-readable) json format
-    with open(out_filename, "w") as f:
-        json.dump(filtered_intervals, f, indent=4)
+    if os.makedirs(os.path.dirname(out_filename), exist_ok=True):
+        with open(out_filename, "w") as f:
+            json.dump(filtered_intervals, f, indent=4)
 
     # Now go check out the file you just created at `mfa_output_combined.json`!
 
-    # An example of how you might read that data back in a later script/step
 
 
-#   with open(out_filename) as f:
-#       combined_intervals = json.load(f)
-#       for filename, intervals in combined_intervals.items():
-#           print(f"'{filename}': {combined_intervals}")
-#           for interval in intervals:
-#               print(interval['min_time'])
 
 
 def find_textgrid_files(search_directory):
@@ -74,11 +69,77 @@ def find_textgrid_files(search_directory):
     for basedir, directories, files in os.walk(search_directory):
         for file in files:
             if file.endswith(".TextGrid"):
-                # full_path = os.path.join(basedir, file)
-                # found.append(full_path)
-                found.append(file)
+                full_path = os.path.join(basedir, file)
+                found.append(full_path)
+                #found.append(file)
     #string parsing
-    return found
+    return full_path
+
+
+def to_ipa(phoneme):
+    """
+    Converts ARPABet phonemes to IPA. Also switches some MFA-specific conventions back to our own.
+    """
+    if phoneme in _PHONEME_MAP_BACK:
+        return _PHONEME_MAP_BACK[phoneme]
+    else:
+        return phoneme
+
+
+_PHONEME_MAP_BACK = {
+        # Undo MFA conventions:
+        "ɐ": "ʌ",
+        "aw": "aʊ",
+        "aj": "aɪ",
+        "ow": "oʊ",
+        "ej": "eɪ",
+        "ɔj": "ɔɪ",
+
+        # ARPABet to IPA:
+        "AA": "ɑ",
+        "AE": "æ",
+        "AH": "ʌ",
+        "AH0": "ə",
+        "AO": "ɔ",
+        "AW": "aʊ",
+        "AX": "ə",
+        "AY": "aɪ",
+        "B": "b",
+        "CH": "ʧ",
+        "D": "d",
+        "DH": "ð",
+        "DX": "ɾ",
+        "EH": "ɛ",
+        "ER": "ɝ",
+        "EY": "e",
+        "F": "f",
+        "G": "ɡ",
+        "HH": "h",
+        "IH": "ɪ",
+        "IY": "i",
+        "JH": "ʤ",
+        "K": "k",
+        "L": "l",
+        "M": "m",
+        "N": "n",
+        "NG": "ŋ",
+        "OW": "o",
+        "OY": "ɔɪ",
+        "P": "p",
+        "Q": "ʔ",
+        "R": "ɹ",
+        "S": "s",
+        "SH": "ʃ",
+        "T": "t",
+        "TH": "θ",
+        "UH": "ʊ",
+        "UW": "u",
+        "V": "v",
+        "W": "w",
+        "Y": "j",
+        "Z": "z",
+        "ZH": "ʒ",
+}
 
 
 if __name__ == '__main__':
